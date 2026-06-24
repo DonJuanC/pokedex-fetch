@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buscador con Fetch</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Buscador de Datos</h1>
+
+      <form id="search-form">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Ingresa un nombre de Pokémon (ej: pikachu)"
+          required
+        />
+        <button type="submit">Buscar</button>
+      </form>
+
+      <!-- Estado de carga -->
+      <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Cargando...</p>
+      </div>
+
+      <!-- Contenido exitoso -->
+      <div id="content" class="content hidden"></div>
+
+      <!-- Estado de error -->
+      <div id="error" class="error hidden">
+        <p id="error-message"></p>
+        <button id="retry-btn">Reintentar</button>
+      </div>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
