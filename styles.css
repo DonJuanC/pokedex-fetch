@@ -1,78 +1,253 @@
+/* ============================================================
+   TEMA POKÉDEX — rediseño visual completo
+   Tipografía retro estilo Game Boy + paleta clásica de Pokédex
+   (rojo carcasa, pantalla LCD verde, lentes y luces decorativas)
+   ============================================================ */
+
+/* Fuentes retro desde Google Fonts:
+   - Press Start 2P: pixel font para títulos y botones (texto corto)
+   - VT323: terminal retro, más legible para texto largo (inputs, datos) */
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap");
+
+:root {
+  /* Paleta centralizada para no repetir hex codes por todo el archivo */
+  --pokedex-red: #e3350d;
+  --pokedex-red-dark: #b8270a;
+  --pokedex-black: #1a1a1a;
+  --screen-green: #9bbc0f; /* verde clásico de pantalla Game Boy */
+  --screen-green-dark: #0f380f;
+  --pokedex-blue: #3b6ce0;
+  --pokedex-yellow: #ffcb05;
+}
+
 * {
   box-sizing: border-box;
-  font-family: system-ui, sans-serif;
+  font-family: "VT323", monospace;
 }
+
 body {
-  background: #f4f4f5;
+  /* Fondo oscuro tipo "mesa" para que el dispositivo rojo resalte */
+  background: radial-gradient(circle at 50% 0%, #3a3a3a 0%, #1a1a1a 100%);
   padding: 2rem;
+  min-height: 100vh;
 }
+
 .container {
+  /* Carcasa del Pokédex: rojo clásico, borde negro grueso,
+     esquinas superiores más redondeadas (como el dispositivo real) */
   max-width: 480px;
   margin: 0 auto;
-  background: #fff;
-  padding: 1.5rem;
-  border-radius: 8px;
+  background: var(--pokedex-red);
+  padding: 3.5rem 1.5rem 1.5rem;
+  border-radius: 24px 24px 12px 12px;
+  border: 4px solid var(--pokedex-black);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.15),
+    0 10px 0 var(--pokedex-red-dark),
+    0 14px 24px rgba(0, 0, 0, 0.5);
+  position: relative;
 }
-.hidden {
-  display: none;
+
+/* Lente grande azul: el "ojo" característico del Pokédex,
+   hecho con un pseudo-elemento para no tocar el HTML */
+.container::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #bcd9ff 0%,
+    var(--pokedex-blue) 45%,
+    #1d3f8f 100%
+  );
+  border: 3px solid var(--pokedex-black);
+  box-shadow:
+    0 0 0 4px #fff,
+    0 0 10px rgba(0, 0, 0, 0.4);
 }
+
+/* Tres luces pequeñas (rojo/amarillo/verde) dibujadas con box-shadow:
+   un solo elemento real + 2 "copias" proyectadas como sombra */
+.container::after {
+  content: "";
+  position: absolute;
+  top: 20px;
+  left: 72px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow:
+    18px 0 0 var(--pokedex-yellow),
+    36px 0 0 #4caf50;
+}
+
+h1 {
+  font-family: "Press Start 2P", monospace;
+  color: #fff;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.4;
+  text-shadow: 2px 2px 0 var(--pokedex-black);
+  margin: 0 0 1.2rem;
+  letter-spacing: 1px;
+}
+
 #search-form {
+  /* La "ranura" negra donde vive el input, como el panel inferior del Pokédex */
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  background: var(--pokedex-black);
+  padding: 0.6rem;
+  border-radius: 8px;
 }
+
 #search-input {
   flex: 1;
-  padding: 0.5rem;
+  padding: 0.6rem;
+  border: 2px solid var(--pokedex-black);
+  border-radius: 4px;
+  background: #fff;
+  font-family: "VT323", monospace;
+  font-size: 1.1rem;
 }
-.loading {
-  text-align: center;
+
+#search-input:focus {
+  outline: 3px solid var(--pokedex-yellow);
+}
+
+button {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.65rem;
+  cursor: pointer;
+}
+
+#search-form button {
+  /* Botón "Buscar" amarillo con efecto 3D de botón físico */
+  background: var(--pokedex-yellow);
+  color: var(--pokedex-black);
+  border: 2px solid var(--pokedex-black);
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  box-shadow: 0 3px 0 #b8860b;
+}
+
+#search-form button:active {
+  /* Se "hunde" al hacer click, simulando un botón real */
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.hidden {
+  display: none;
+}
+
+/* "Pantalla" del Pokédex: fondo verde LCD compartido por
+   loading / contenido / error, como la pantalla monocromática Game Boy */
+.loading,
+.content,
+.error {
+  background: var(--screen-green);
+  border: 3px solid var(--pokedex-black);
+  border-radius: 6px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  color: var(--screen-green-dark);
   padding: 1rem;
 }
+
+.loading {
+  text-align: center;
+}
+
 .spinner {
   width: 24px;
   height: 24px;
-  border: 3px solid #ddd;
-  border-top-color: #333;
+  border: 4px solid var(--screen-green-dark);
+  border-top-color: transparent;
   border-radius: 50%;
   margin: 0 auto 0.5rem;
-  animation: spin 0.8s linear infinite;
+  /* steps(8) en vez de "linear": gira a saltos, efecto pixel-art */
+  animation: spin 0.8s steps(8) infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
 .error {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 1rem;
-  border-radius: 6px;
-}
-.error button {
-  margin-top: 0.5rem;
-}
-.data-card {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  text-align: center;
-}
-.data-card img {
-  width: 120px;
+  /* La pantalla cambia a "alerta" en vez del verde LCD normal */
+  background: #ffb3b3;
+  color: #5a0000;
 }
 
+.error button {
+  margin-top: 0.5rem;
+  background: var(--pokedex-red);
+  color: #fff;
+  border: 2px solid var(--pokedex-black);
+  border-radius: 4px;
+  padding: 0.5rem 0.8rem;
+  box-shadow: 0 3px 0 var(--pokedex-red-dark);
+}
+
+.error button:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.data-card {
+  text-align: center;
+}
+
+.data-card h2 {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+}
+
+.data-card img {
+  width: 120px;
+  /* Evita que el navegador difumine el sprite al escalarlo:
+     mantiene los pixeles nítidos, look retro autêntico */
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.2));
+}
+
+.data-card p {
+  font-size: 1.2rem;
+  margin: 0.3rem 0 0;
+}
+
+/* Historial de búsquedas: pills oscuras como "cartuchos" */
 #history {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
   margin-bottom: 1rem;
 }
+
 .history-item {
-  background: #e5e7eb;
-  border: none;
+  /* Esta regla pesa más que el "button" genérico de arriba
+     por especificidad de clase, así que sí aplica */
+  background: var(--pokedex-black);
+  color: var(--pokedex-yellow);
+  border: 2px solid #000;
   border-radius: 999px;
-  padding: 0.3rem 0.8rem;
-  cursor: pointer;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.7rem;
+  font-family: "VT323", monospace;
+  font-size: 0.95rem;
+}
+
+.history-item:hover {
+  background: var(--pokedex-blue);
+  color: #fff;
 }
