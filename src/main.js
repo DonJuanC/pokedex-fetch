@@ -24,8 +24,19 @@ async function handleSearch(id) {
 
   try {
     const data = await fetchJson(`${API_BASE}/${id}`);
-    cache.set(id, data);
-    setState({ status: "success", data });
+
+    // is_legendary / is_mythical NO vienen en /pokemon/, viven en
+    // /pokemon-species/. data.species.url ya apunta ahí, así que hacemos
+    // un segundo fetch encadenado y fusionamos ambos resultados en uno solo.
+    const species = await fetchJson(data.species.url);
+    const fullData = {
+      ...data,
+      isLegendary: species.is_legendary,
+      isMythical: species.is_mythical,
+    };
+
+    cache.set(id, fullData);
+    setState({ status: "success", data: fullData });
     addToHistory(id);
     render(getState());
   } catch (error) {

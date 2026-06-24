@@ -87,6 +87,47 @@ body {
     36px 0 0 #4caf50;
 }
 
+/* LED de estado real (no decorativo): refleja idle/loading/success/error.
+   Va separado de las 3 luces de arriba para no perder ese detalle fijo;
+   ui.js le cambia data-status en cada render(). */
+/* Selector por ID, no por clase: el <span> en index.html solo tiene
+   id="status-light", nunca tuvo class="status-light" (bug original: estas
+   reglas usaban ".status-light" y por eso nunca matcheaban con nada). */
+#status-light {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #555; /* gris = idle, todavía no se buscó nada */
+  border: 2px solid var(--pokedex-black);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.2s ease;
+}
+
+#status-light[data-status="loading"] {
+  background: var(--pokedex-yellow);
+  box-shadow: 0 0 8px var(--pokedex-yellow);
+  animation: blink 0.6s steps(2) infinite;
+}
+
+#status-light[data-status="success"] {
+  background: #4caf50;
+  box-shadow: 0 0 8px #4caf50;
+}
+
+#status-light[data-status="error"] {
+  background: var(--pokedex-red);
+  box-shadow: 0 0 8px var(--pokedex-red);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
 h1 {
   font-family: "Press Start 2P", monospace;
   color: #fff;
@@ -214,17 +255,73 @@ button {
   margin: 0 0 0.5rem;
 }
 
+/* Identificador legendario/mítico: dorado fijo para legendario, púrpura con
+   glow animado para mítico (un poco más "especial" que el legendario) */
+.badge {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.5rem;
+  font-family: "Press Start 2P", monospace;
+  vertical-align: middle;
+}
+
+.badge-legendary {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: var(--pokedex-black);
+  box-shadow: 0 0 6px #ffd700;
+}
+
+.badge-mythical {
+  background: linear-gradient(135deg, #a64bf4, #4b0082);
+  color: #fff;
+  box-shadow: 0 0 6px #a64bf4;
+  animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 4px #a64bf4;
+  }
+  to {
+    box-shadow: 0 0 12px #a64bf4;
+  }
+}
+
 .data-card img {
-  width: 120px;
-  /* Evita que el navegador difumine el sprite al escalarlo:
-     mantiene los pixeles nítidos, look retro autêntico */
-  image-rendering: pixelated;
+  /* ui.js ahora pide sprites.other["official-artwork"] (475x475) en vez del
+     sprite de juego (96x96). Al ser una ilustración de alta resolución se
+     puede agrandar bastante sin pixelarse, así que subimos el tamaño y
+     quitamos "image-rendering: pixelated": esa regla solo tenía sentido
+     para mantener nítido un sprite pequeño, no una ilustración ya nítida. */
+  width: 220px;
   filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.2));
 }
 
 .data-card p {
   font-size: 1.2rem;
   margin: 0.3rem 0 0;
+}
+
+/* Estadísticas base (HP/ATK/DEF/SPD): mismo lenguaje visual que los pills
+   del historial (#history .history-item) para que se sienta parte del tema */
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: 0.6rem 0 0;
+}
+
+.stats li {
+  background: var(--pokedex-black);
+  color: var(--screen-green);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
 }
 
 /* Historial de búsquedas: pills oscuras como "cartuchos" */

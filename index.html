@@ -3,12 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Buscador con Fetch</title>
+    <title>Pokédex - Buscador con Fetch</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="container">
-      <h1>Buscador de Datos</h1>
+      <!-- LED de estado: ui.js le cambia el atributo data-status en cada
+           render() para reflejar idle/loading/success/error -->
+      <span id="status-light" data-status="idle"></span>
+      <h1>Buscador de Pokémon</h1>
 
       <form id="search-form">
         <input
