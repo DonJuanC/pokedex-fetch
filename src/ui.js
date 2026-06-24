@@ -1,19 +1,28 @@
+// CONCEPTO CLAVE DEL MÓDULO: render(state) es una función de "pintar", no
+// de "decidir". Recibe el estado actual y solo refleja eso en el DOM;
+// nunca decide por sí misma cuándo cambiar de estado (eso es trabajo de
+// main.js, vía setState). Por eso cada vez que algo cambia, el patrón es
+// siempre el mismo: setState(...) y después render(getState()).
 export function render(state) {
   const loading = document.querySelector("#loading");
   const content = document.querySelector("#content");
   const error = document.querySelector("#error");
 
   // LED de estado: data-status dispara color/animación definidos en CSS
-  // (.status-light[data-status="..."]). Se actualiza en cada render(),
+  // (#status-light[data-status="..."]). Se actualiza en cada render(),
   // así que siempre queda sincronizado con state.status.
   document.querySelector("#status-light").dataset.status = state.status;
 
-  // Ocultar todo primero
+  // Ocultar TODO primero y recién después mostrar el bloque que
+  // corresponde: evita el bug clásico de dejar dos estados visibles a la
+  // vez (ej. loading y error superpuestos) si no se limpia antes de pintar.
   loading.classList.add("hidden");
   content.classList.add("hidden");
   error.classList.add("hidden");
 
-  // Mostrar según estado
+  // Mostrar según estado: un único if/else if mapea 1 a 1 con los valores
+  // posibles de status. "idle" no necesita rama propia: ya quedó todo
+  // oculto arriba, que es justamente lo que se ve en el estado inicial.
   if (state.status === "loading") {
     loading.classList.remove("hidden");
   } else if (state.status === "success") {
@@ -25,6 +34,9 @@ export function render(state) {
   }
 }
 
+// renderData traduce el JSON crudo de PokéAPI a HTML. Separarlo de
+// render() mantiene la función principal simple, y este "traductor de
+// datos" queda fácil de leer/ajustar por separado.
 function renderData(data) {
   // PokéAPI entrega altura en decímetros y peso en hectogramos (no metros/kg).
   // 1 decímetro = 0.1 m · 1 hectogramo = 0.1 kg → convertimos antes de mostrar.
