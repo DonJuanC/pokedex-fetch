@@ -3,9 +3,10 @@ import { getState, setState } from "./state.js";
 import { render } from "./ui.js";
 
 const API_BASE = "https://pokeapi.co/api/v2/pokemon";
+const cache = new Map();
+const history = [];
 
 async function handleSearch(id) {
-  // 1. Actualizar estado a loading
   setState({
     status: "loading",
     data: null,
@@ -14,21 +15,44 @@ async function handleSearch(id) {
   });
   render(getState());
 
-  try {
-    // 2. Hacer fetch
-    const data = await fetchJson(`${API_BASE}/${id}`);
+  if (cache.has(id)) {
+    setState({ status: "success", data: cache.get(id) });
+    addToHistory(id);
+    render(getState());
+    return;
+  }
 
-    // 3. Éxito: actualizar estado
+  try {
+    const data = await fetchJson(`${API_BASE}/${id}`);
+    cache.set(id, data);
     setState({ status: "success", data });
+    addToHistory(id);
     render(getState());
   } catch (error) {
-    // 4. Error: actualizar estado
     setState({
       status: "error",
       error: error.message || "Ocurrió un error",
     });
     render(getState());
   }
+}
+
+function addToHistory(id) {
+  if (!history.includes(id)) {
+    history.unshift(id);
+    history.splice(5);
+  }
+  renderHistory();
+}
+
+function renderHistory() {
+  const historyEl = document.querySelector("#history");
+  historyEl.innerHTML = history
+    .map(
+      (name) =>
+        `<button class="history-item" data-name="${name}">${name}</button>`,
+    )
+    .join("");
 }
 
 // Setup de eventos
@@ -47,5 +71,23 @@ document.querySelector("#retry-btn").addEventListener("click", () => {
   const { lastSearch } = getState();
   if (lastSearch) {
     handleSearch(lastSearch);
+  }
+});
+
+// Debounce
+let debounceTimer;
+const searchInput = document.querySelector("#search-input");
+searchInput.addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  const value = e.target.value.trim().toLowerCase();
+  debounceTimer = setTimeout(() => {
+    if (value) handleSearch(value);
+  }, 500);
+});
+
+document.querySelector("#history").addEventListener("click", (e) => {
+  const name = e.target.dataset.name;
+  if (name) {
+    handleSearch(name);
   }
 });

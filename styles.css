@@ -61,3 +61,18 @@ body {
 .data-card img {
   width: 120px;
 }
+
+#history {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.history-item {
+  background: #e5e7eb;
+  border: none;
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
