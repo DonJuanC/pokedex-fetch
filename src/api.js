@@ -11,11 +11,12 @@ export async function fetchJson(url) {
   const response = await fetch(url);
 
   // response.ok es true solo para status 200-299. Si no, lanzamos un
-  // Error manualmente: esto es lo que convierte un "error HTTP" en una
-  // excepción real que el try/catch de quien llama (main.js) puede
-  // atrapar exactamente igual que atraparía un error de red.
+  // Error manualmente (con status + statusText, ej. "404 — Not Found")
+  // para que el mensaje sea más informativo: esto es lo que convierte un
+  // "error HTTP" en una excepción real que el try/catch de quien llama
+  // (main.js) puede atrapar exactamente igual que atraparía un error de red.
   if (!response.ok) {
-    throw new Error(`HTTP error ${response.status}`);
+    throw new Error(`HTTP ${response.status} — ${response.statusText}`);
   }
 
   // Segundo await ("doble await"): el body llega como stream y hay que
@@ -24,4 +25,19 @@ export async function fetchJson(url) {
   const data = await response.json();
 
   return data;
+}
+
+// CONCEPTO CLAVE: separación de responsabilidades. fetchJson() es 100%
+// genérico — no sabe nada de Pokémon ni de PokéAPI. getPokemon() es la
+// pieza que SÍ conoce la URL base de la API. Antes, main.js armaba esa
+// URL a mano (API_BASE + id); eso hacía que main.js "supiera" detalles de
+// PokéAPI que no le corresponden. Ahora esa responsabilidad vive acá, en
+// la capa de datos, igual que en el resolution del instructor. El segundo
+// fetch que sigue haciendo main.js (a data.species.url) no necesita este
+// wrapper porque ya recibe la URL completa hecha por la propia API.
+const BASE_URL = "https://pokeapi.co/api/v2/pokemon";
+
+export async function getPokemon(name) {
+  const url = `${BASE_URL}/${name.toLowerCase().trim()}`;
+  return await fetchJson(url);
 }

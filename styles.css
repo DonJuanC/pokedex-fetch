@@ -185,6 +185,14 @@ button {
   box-shadow: none;
 }
 
+/* ui.js pone disabled=true en #search-btn mientras status === "loading"
+   (evita doble submit); esto le da feedback visual a ese estado, si no
+   se vería igual a un botón habilitado normal. */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .hidden {
   display: none;
 }

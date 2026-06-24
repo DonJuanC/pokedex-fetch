@@ -11,8 +11,13 @@ const state = {
   lastSearch: null, // Última búsqueda guardada, para que el botón "Reintentar" sepa qué repetir
 };
 
+// Devolvemos una COPIA del estado ({ ...state }), no la referencia
+// original. Así, si alguien hace "const s = getState(); s.status = 'x'",
+// solo modifica la copia, no el estado real — la única forma de cambiar
+// el estado real sigue siendo setState(). Esto es lo que el resolution
+// del instructor llama evitar "mutación accidental desde afuera".
 export function getState() {
-  return state;
+  return { ...state };
 }
 
 // Object.assign fusiona solo las claves que le pasamos ("updates") dentro

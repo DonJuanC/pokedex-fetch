@@ -7,11 +7,18 @@ export function render(state) {
   const loading = document.querySelector("#loading");
   const content = document.querySelector("#content");
   const error = document.querySelector("#error");
+  const searchBtn = document.querySelector("#search-btn");
 
   // LED de estado: data-status dispara color/animación definidos en CSS
   // (#status-light[data-status="..."]). Se actualiza en cada render(),
   // así que siempre queda sincronizado con state.status.
   document.querySelector("#status-light").dataset.status = state.status;
+
+  // Concepto del resolution: deshabilitar el botón "Buscar" mientras hay
+  // un fetch en curso (status === "loading"), para que no se puedan
+  // disparar dos búsquedas en simultáneo haciendo doble click. Se vuelve
+  // a habilitar solo, sin código extra, en cualquier otro estado.
+  searchBtn.disabled = state.status === "loading";
 
   // Ocultar TODO primero y recién después mostrar el bloque que
   // corresponde: evita el bug clásico de dejar dos estados visibles a la

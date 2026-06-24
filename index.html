@@ -20,7 +20,9 @@
           placeholder="Ingresa un nombre de Pokémon (ej: pikachu)"
           required
         />
-        <button type="submit">Buscar</button>
+        <!-- id="search-btn": ui.js lo deshabilita mientras status === "loading",
+             para evitar doble submit con un fetch ya en curso (concepto del resolution) -->
+        <button type="submit" id="search-btn">Buscar</button>
       </form>
 
       <div id="history"></div>
@@ -34,8 +36,10 @@
       <!-- Contenido exitoso -->
       <div id="content" class="content hidden"></div>
 
-      <!-- Estado de error -->
-      <div id="error" class="error hidden">
+      <!-- Estado de error: role="alert" + aria-live="assertive" para que un
+           lector de pantalla anuncie el error apenas aparece, sin que el
+           usuario tenga que navegar hasta encontrarlo (concepto del resolution) -->
+      <div id="error" class="error hidden" role="alert" aria-live="assertive">
         <p id="error-message"></p>
         <button id="retry-btn">Reintentar</button>
       </div>

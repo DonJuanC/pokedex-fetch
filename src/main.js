@@ -2,11 +2,12 @@
 // enviar el form, hacer click) con la capa de datos (api.js) y la capa de
 // estado/UI (state.js + ui.js). No sabe hacer fetch ni pintar el DOM por
 // su cuenta — delega cada cosa al módulo que le corresponde.
-import { fetchJson } from "./api.js";
+// fetchJson queda para el fetch genérico (lo usamos para el segundo
+// fetch, a data.species.url); getPokemon ya sabe armar la URL de
+// PokéAPI por nombre, esa responsabilidad se centralizó en api.js.
+import { fetchJson, getPokemon } from "./api.js";
 import { getState, setState } from "./state.js";
 import { render } from "./ui.js";
-
-const API_BASE = "https://pokeapi.co/api/v2/pokemon";
 
 // Caché en memoria: un Map normal (no localStorage, se pierde al
 // refrescar). Evita pegarle a la API por un Pokémon que ya buscamos antes.
@@ -14,6 +15,12 @@ const cache = new Map();
 
 // Últimas búsquedas, para pintar los pills del historial.
 const history = [];
+
+// Render inicial: pinta el estado "idle" apenas carga el módulo, en vez
+// de confiar en que las clases "hidden" del HTML ya coincidan a mano con
+// ese estado. Así la pantalla SIEMPRE arranca reflejando lo que dice
+// state.js, sin depender de que el HTML esté "sincronizado por casualidad".
+render(getState());
 
 async function handleSearch(id) {
   // Avisamos que empezamos a cargar y pintamos ESE estado antes de que el
@@ -45,7 +52,7 @@ async function handleSearch(id) {
   // Para quien usa la app ambos se ven igual (pantalla de error + botón
   // reintentar), pero error.message trae un texto distinto en cada caso.
   try {
-    const data = await fetchJson(`${API_BASE}/${id}`);
+    const data = await getPokemon(id);
 
     // is_legendary / is_mythical NO vienen en /pokemon/, viven en
     // /pokemon-species/. data.species.url ya apunta ahí, así que hacemos
@@ -63,12 +70,21 @@ async function handleSearch(id) {
     addToHistory(id);
     render(getState());
   } catch (error) {
-    setState({
-      status: "error",
-      // error.message ya trae "HTTP error 404" (lo arma api.js) o
-      // "Failed to fetch" (lo pone el navegador), según cuál haya sido.
-      error: error.message || "Ocurrió un error",
-    });
+    // Traducimos el error técnico a un mensaje legible para quien usa la
+    // app (mismo concepto que el resolution del instructor en main.js):
+    //   - "404" en el mensaje -> casi siempre el nombre está mal escrito.
+    //   - otro "HTTP ..." -> respondió el servidor, pero con error (5xx, etc).
+    //   - nada de "HTTP" -> nunca hubo respuesta: falló la red/conexión.
+    let friendlyMessage;
+    if (error.message.includes("404")) {
+      friendlyMessage = `No encontramos un Pokémon llamado "${id}". ¿Está bien escrito?`;
+    } else if (error.message.includes("HTTP")) {
+      friendlyMessage = `Error del servidor: ${error.message}`;
+    } else {
+      friendlyMessage = `Error de conexión: ${error.message}`;
+    }
+
+    setState({ status: "error", error: friendlyMessage });
     render(getState());
   }
 }

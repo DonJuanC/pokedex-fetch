@@ -39,10 +39,10 @@ buscador-fetch/
 
 El patrón es un mini state machine con una sola fuente de verdad:
 
-1. **`state.js`** guarda un objeto plano (`status`, `data`, `error`, `lastSearch`) con `getState()` / `setState()`. Nadie muta el estado directamente, todo pasa por `setState`.
-2. **`api.js`** solo sabe hacer fetch: pide la URL, valida `response.ok`, parsea el JSON y devuelve los datos o lanza un `Error`. No conoce nada de la UI.
-3. **`ui.js`** es una función de render pura: recibe el estado actual y decide qué bloque mostrar (`loading`, `content` o `error`), sin guardar nada por su cuenta. También actualiza el LED de estado (`#status-light`) y traduce el JSON del Pokémon a HTML (`renderData`).
-4. **`main.js`** conecta todo: escucha eventos (submit del form, input para debounce, click en retry, click en historial), llama a `fetchJson`, actualiza el estado con `setState` y vuelve a pintar con `render(getState())`. Para cada búsqueda nueva hace un **fetch encadenado**: primero `/pokemon/{nombre}`, y con la URL que viene en `data.species.url` pide `/pokemon-species/{nombre}` para obtener `is_legendary` / `is_mythical` (ese dato no está en el primer endpoint).
+1. **`state.js`** guarda un objeto plano (`status`, `data`, `error`, `lastSearch`) con `getState()` / `setState()`. `getState()` devuelve una copia (`{ ...state }`), no la referencia real — nadie puede mutar el estado desde afuera sin pasar por `setState`.
+2. **`api.js`** tiene dos capas: `fetchJson(url)` es 100% genérico (fetch + valida `response.ok` + parsea JSON) y no conoce nada de la UI; `getPokemon(name)` es la única pieza que conoce la URL base de PokéAPI y arma la URL por nombre. El fetch encadenado a `data.species.url` (ver punto 4) sigue usando `fetchJson` directo, porque esa URL ya viene completa desde la propia API.
+3. **`ui.js`** es una función de render pura: recibe el estado actual y decide qué bloque mostrar (`loading`, `content` o `error`), sin guardar nada por su cuenta. También actualiza el LED de estado (`#status-light`), deshabilita el botón "Buscar" mientras `status === "loading"` (evita doble submit) y traduce el JSON del Pokémon a HTML (`renderData`).
+4. **`main.js`** conecta todo: hace un `render(getState())` inicial al cargar (para que la pantalla arranque reflejando `idle` en vez de depender de que el HTML ya venga sincronizado a mano), y luego escucha eventos (submit del form, input para debounce, click en retry, click en historial), llama a `getPokemon`, actualiza el estado con `setState` y vuelve a pintar con `render(getState())`. Para cada búsqueda nueva hace un **fetch encadenado**: primero `getPokemon(nombre)` (→ `/pokemon/{nombre}`), y con la URL que viene en `data.species.url` pide `/pokemon-species/{nombre}` con `fetchJson` para obtener `is_legendary` / `is_mythical` (ese dato no está en el primer endpoint). Si el fetch falla, el `catch` traduce `error.message` a un texto legible para el usuario (404 → "no encontramos ese Pokémon", resto → error de servidor o de conexión).
 
 Este flujo se repite siempre igual: **evento → loading → fetch (+ fetch de species) → success o error → render**.
 
@@ -59,6 +59,11 @@ Lo que pone en práctica este proyecto, módulo por módulo:
 - **Debounce**: `setTimeout` + `clearTimeout` para esperar a que el usuario deje de escribir antes de disparar la búsqueda automática.
 - **Caché en memoria**: un `Map` que evita repetir un fetch ya resuelto antes (se pierde al refrescar, a diferencia de `localStorage`).
 - **Event delegation**: los pills del historial se crean/destruyen dinámicamente, así que el listener vive en el contenedor padre (`#history`) y se identifica el pill clickeado por `e.target.dataset.name`.
+- **Inmutabilidad superficial del estado**: `getState()` devuelve `{ ...state }` (una copia), no la referencia real, para que nadie pueda mutar el estado desde afuera sin pasar por `setState`.
+- **Separación de responsabilidades**: `api.js` (no `main.js`) es quien conoce la URL base de PokéAPI, vía `getPokemon(name)`. Si mañana cambia la API, el cambio vive en un solo lugar.
+- **Errores traducidos a lenguaje de usuario**: el `catch` de `main.js` no muestra `error.message` crudo — lo mapea a un texto en español según el tipo de falla (404, error de servidor, error de conexión).
+- **Accesibilidad básica**: el panel de error tiene `role="alert"` y `aria-live="assertive"`, para que un lector de pantalla anuncie el error apenas aparece.
+- **Prevención de doble submit**: el botón "Buscar" se deshabilita (`disabled`) mientras `status === "loading"`, para no disparar dos fetch en simultáneo con doble click.
 
 ## Cómo correrlo localmente
 
@@ -87,6 +92,7 @@ Nota: PokéAPI distingue mayúsculas/minúsculas — los nombres deben ir en min
 - Botón "Reintentar" repite la última búsqueda (`lastSearch` en el estado).
 - Transición visual correcta a `loading` mientras espera la respuesta.
 - Estados se ocultan/muestran exclusivamente entre sí (nunca dos bloques visibles a la vez).
+- Botón "Buscar" queda deshabilitado mientras hay un fetch en curso, y se reactiva en `success`/`error`.
 
 ## Posibles mejoras futuras
 
